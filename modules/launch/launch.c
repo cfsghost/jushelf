@@ -8,6 +8,7 @@
 typedef struct {
 	ClutterActor *container;
 	ClutterActor *icon_actor;
+	ClutterState *state;
 	gchar *icon;
 	gchar *name;
 	gchar *exec;
@@ -18,6 +19,21 @@ launch_clicked_cb(Launch *launch)
 {
 	g_print("Execute \"%s\"\n", launch->exec);
 	g_spawn_command_line_async(launch->exec, NULL);
+	return TRUE;
+}
+
+launch_leave_cb(Launch *launch)
+{
+	g_print("leave\n");
+	clutter_state_set_state(launch->state, "normal");
+	return TRUE;
+}
+
+static gboolean
+launch_enter_cb(Launch *launch)
+{
+	g_print("enter\n");
+	clutter_state_set_state(launch->state, "active");
 	return TRUE;
 }
 
@@ -42,8 +58,24 @@ launch_constructor(JshWidget *widget)
 
 	/* Set behavior */
 	clutter_actor_set_reactive(launch->container, TRUE);
+
+	launch->state = clutter_state_new();
+	clutter_state_set(launch->state, NULL, "active",
+		launch->container, "scale-x", CLUTTER_LINEAR, 2.0,
+		launch->container, "scale-y", CLUTTER_LINEAR, 2.0,
+		NULL);
+	clutter_state_set(launch->state, NULL, "normal",
+		launch->container, "scale-x", CLUTTER_LINEAR, 1.0,
+		launch->container, "scale-y", CLUTTER_LINEAR, 1.0,
+		NULL);
+	clutter_state_set_duration(launch->state, NULL, NULL, 200);
+
 	g_signal_connect_swapped(launch->container, "button-press-event",
 		G_CALLBACK(launch_clicked_cb), launch);
+	g_signal_connect_swapped(launch->container, "enter-event",
+		G_CALLBACK(launch_enter_cb), launch);
+	g_signal_connect_swapped(launch->container, "leave-event",
+		G_CALLBACK(launch_leave_cb), launch);
 
 	g_print("Constructor\n");
 }
