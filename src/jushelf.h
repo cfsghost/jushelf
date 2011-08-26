@@ -7,15 +7,49 @@
 #define DEBUG(args...)
 #endif
 
+#include <jushelf/conf.h>
+#include <jushelf/widget.h>
+#include <jushelf/module.h>
+
 typedef enum {
-	JU_WINDOW_TYPE_NORMAL,
-	JU_WINDOW_TYPE_DESKTOP,
-	JU_WINDOW_TYPE_DOCK,
-	JU_WINDOW_TYPE_TOOLBAR,
-	JU_WINDOW_TYPE_MENU,
-	JU_WINDOW_TYPE_UTILITY,
-	JU_WINDOW_TYPE_SPLASH,
-	JU_WINDOW_TYPE_DIALOG
-} JuWindowType;
+	JSH_WINDOW_TYPE_NORMAL,
+	JSH_WINDOW_TYPE_DESKTOP,
+	JSH_WINDOW_TYPE_DOCK,
+	JSH_WINDOW_TYPE_TOOLBAR,
+	JSH_WINDOW_TYPE_MENU,
+	JSH_WINDOW_TYPE_UTILITY,
+	JSH_WINDOW_TYPE_SPLASH,
+	JSH_WINDOW_TYPE_DIALOG
+} JshWindowType;
+
+typedef enum {
+	JSH_PLACE_TOP,
+	JSH_PLACE_TOP_LEFT,
+	JSH_PLACE_TOP_RIGHT,
+
+	JSH_PLACE_BOTTOM,
+	JSH_PLACE_BOTTOM_LEFT,
+	JSH_PLACE_BOTTOM_RIGHT,
+
+	JSH_PLACE_LEFT,
+	JSH_PLACE_RIGHT
+} JshPlace;
+
+typedef struct _JuShelf JuShelf;
+
+typedef struct {
+	JuShelf *parent;
+	ClutterActor *window;
+	GPtrArray *widgets;
+	gchar *name;
+	gint size;
+	guint8 opacity;
+	JshPlace place;
+} JshShelf;
+
+struct _JuShelf {
+	GPtrArray *modules;
+	GPtrArray *shelves;
+};
 
 #endif

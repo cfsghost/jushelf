@@ -1,65 +1,195 @@
 #include <stdlib.h>
 #include <glib.h>
+#include <gmodule.h>
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <sys/stat.h>
 #include <clutter/clutter.h>
 #include <clutter/x11/clutter-x11.h>
+#include <jushelf/conf.h>
+#include <jushelf/widget.h>
 #include "jushelf.h"
+#include "conf.h"
+#include "shelf.h"
+#include "widget.h"
 
-void ju_set_window_type(Display *disp, Window w, JuWindowType wtype)
+JshShelf *
+jsh_build_shelf(JuShelf *jushelf, JshConf *conf, JsonNode *node, const gchar *shelf_name)
 {
-	Atom wt_atom;
-	Atom type_atom;
+	JshShelf *shelf;
+	JshWidget *widget;
+	JsonNode *group_node;
+	JsonObject *object;
+	GList *members = NULL;
+	GList *listnode = NULL;
+	gchar *member;
 
-	switch(wtype) {
-	case JU_WINDOW_TYPE_DESKTOP:
-		type_atom = XInternAtom(disp, "_NET_WM_WINDOW_TYPE_DESKTOP", False);
-		break;
-	case JU_WINDOW_TYPE_DOCK:
-		type_atom = XInternAtom(disp, "_NET_WM_WINDOW_TYPE_DOCK", False);
-		break;
-	case JU_WINDOW_TYPE_TOOLBAR:
-		type_atom = XInternAtom(disp, "_NET_WM_WINDOW_TYPE_TOOLBAR", False);
-		break;
-	case JU_WINDOW_TYPE_MENU:
-		type_atom = XInternAtom(disp, "_NET_WM_WINDOW_TYPE_MENU", False);
-		break;
-	case JU_WINDOW_TYPE_UTILITY:
-		type_atom = XInternAtom(disp, "_NET_WM_WINDOW_TYPE_UTILITY", False);
-		break;
-	case JU_WINDOW_TYPE_SPLASH:
-		type_atom = XInternAtom(disp, "_NET_WM_WINDOW_TYPE_SPLASH", False);
-		break;
-	case JU_WINDOW_TYPE_DIALOG:
-		type_atom = XInternAtom(disp, "_NET_WM_WINDOW_TYPE_DIALOG", False);
-		break;
-	default:
-		type_atom = XInternAtom(disp, "_NET_WM_WINDOW_TYPE_NORMAL", False);
+	DEBUG("Create a shelf - \"%s\"\n", shelf_name);
+	object = json_node_get_object(node);
+
+	/* Initializing shelf */
+	shelf = jsh_shelf_new();	
+	shelf->name = g_strdup(shelf_name);
+	shelf->size = json_object_get_int_member(object, "size");
+	shelf->opacity = json_object_get_int_member(object, "opacity");
+	shelf->place = json_object_get_int_member(object, "place");
+	DEBUG("place=%d\n", shelf->place);
+
+	/*  Initializing widgets */
+	group_node = jsh_conf_get_member(conf, node, "widgets", NULL);
+
+	members = jsh_conf_get_members(conf, group_node, NULL);
+	for (listnode = members; listnode; listnode = g_list_next(listnode)) {
+		member = (gchar *)listnode->data;
+
+		/* create widgets */
+		widget = jsh_widget_new(jushelf, member);
+		g_ptr_array_add(shelf->widgets, widget);
+
+		/* call widget function to read config */
+		jsh_widget_config(jushelf, widget, jsh_conf_get_member(conf, group_node, member, NULL));
 	}
 
-	wt_atom = XInternAtom(disp, "_NET_WM_WINDOW_TYPE", False);
+	return shelf;
+}
 
-	XChangeProperty(disp, w,
-		wt_atom,
-		XA_ATOM, 32, PropModeReplace,
-		(unsigned char *)&type_atom, 1);
+JshShelf *
+jsh_build_default_shelf(JuShelf *jushelf)
+{
+	JshShelf *shelf;
+
+	DEBUG("Create a default shelf\n");
+	shelf = jsh_shelf_new();	
+	shelf->name = g_strdup("default");
+	shelf->place = JSH_PLACE_BOTTOM;
+
+	/* TODO: Initializing widgets */
+
+	return shelf;
+}
+
+void
+jsh_load_main_config(JuShelf *jushelf, gchar *path)
+{
+	JshShelf *shelf;
+	JshConf *conf;
+	JsonNode *group_node;
+	GList *members = NULL;
+	GList *listnode = NULL;
+	gchar *member;
+
+	DEBUG("Load Settings\n");
+	conf = jsh_conf_new();
+
+	/* Load config file */
+	if (jsh_conf_load_from_file(conf, path)) {
+		DEBUG("Read general settings\n");
+		group_node = jsh_conf_get_member(conf, NULL, "general", NULL);
+		if (!group_node) {
+			DEBUG("No general setting was defined in config\n");
+			/* TODO: Build up default general settings here */
+		} else {
+			/* TODO: Load general settings here */
+		}
+
+		DEBUG("Read all settings of shelves\n");
+		group_node = jsh_conf_get_member(conf, NULL, "shelves", NULL);
+		if (!group_node) {
+			DEBUG("No shelf was defined in config\n");
+//			shelf = jsh_build_default_shelf(jushelf);
+//			g_ptr_array_add(jushelf->shelves, shelf);
+		} else {
+			/* Read all shelves */
+			DEBUG("Found shelf was defined\n");
+
+			/* Initializing all shelves */
+			members = jsh_conf_get_members(conf, group_node, NULL);
+			for (listnode = members; listnode; listnode = g_list_next(listnode)) {
+				member = (gchar *)listnode->data;
+
+				/* Build up self */
+				shelf = jsh_build_shelf(jushelf, conf, jsh_conf_get_member(conf, group_node, member, NULL), member);
+				g_ptr_array_add(jushelf->shelves, shelf);
+			}
+		}
+	} else {
+		/* TODO: Build up default general settings here */
+	}
+
+	/* Build up a default shelf if no shelf doesn't exist */
+	if (jushelf->shelves->len == 0) {
+		shelf = jsh_build_default_shelf(jushelf);
+		g_ptr_array_add(jushelf->shelves, shelf);
+	}
+
+	/* TODO: Release Conf object */
+}
+
+void
+jsh_load_default_settings(JuShelf *jushelf)
+{
+	JshShelf *shelf;
+
+	/* Create a default shelf */
+	shelf = jsh_build_default_shelf(jushelf);
+	g_ptr_array_add(jushelf->shelves, shelf);
+}
+
+void
+jsh_config_file_init(JuShelf *jushelf)
+{
+	gchar *confdir;
+	gchar *confpath;
+
+	/* Main config path */
+	confdir = g_build_filename(g_get_user_config_dir(), "jushelf" , NULL);
+	DEBUG("Check config path: %s\n", confdir);
+	if (!g_file_test(confdir, G_FILE_TEST_EXISTS))
+		g_mkdir_with_parents(confdir, S_IRUSR | S_IWUSR | S_IXUSR);
+
+	/* Main config */
+	confpath = g_build_filename(confdir, "settings.conf", NULL);
+	DEBUG("Check config file: %s\n", confpath);
+	if (!g_file_test(confpath, G_FILE_TEST_EXISTS)) {
+		jsh_load_default_settings(jushelf);
+	}
+
+	jsh_load_main_config(jushelf, confpath);
 }
 
 int
 main(int argc, char *argv[])
 {
-	XSetWindowAttributes attr;
-	ClutterActor *stage;
-	Window stage_win;
-	Display *disp;
+	JuShelf *jushelf;
+	gint i;
+	
+	if (!g_module_supported()) {
+		DEBUG("No GModule Support!\n");
+	}
+
+	DEBUG("Starting JuShelf\n");
 
 	clutter_x11_set_use_argb_visual(TRUE);
 
 	clutter_init(&argc, &argv);
 
+	/* Initializing Application */
+	DEBUG("Initializing JuShelf\n");
+	jushelf = (JuShelf *)g_slice_new(JuShelf);
+	jushelf->modules = g_ptr_array_new();
+	jushelf->shelves = g_ptr_array_new();
+	jsh_config_file_init(jushelf);
+
+	/* Initializing shelf */
+	DEBUG("Initializing Shelves\n");
+	for (i = 0; i < jushelf->shelves->len; ++i) {
+		jsh_shelf_init(g_ptr_array_index(jushelf->shelves, i));
+	}
+
+#if 0
 	/* Create a new stage */
 	stage = clutter_stage_new();
-	clutter_stage_set_title(CLUTTER_STAGE(stage), "JuShelf");
+	clutter_stage_set_title(CLUTTER_STAGE(stage), "JshShelf");
 	clutter_stage_set_user_resizable(CLUTTER_STAGE(stage), FALSE);
 	clutter_stage_set_use_alpha(CLUTTER_STAGE(stage), TRUE);
 	clutter_actor_set_opacity(stage, 0x22);
@@ -70,17 +200,7 @@ main(int argc, char *argv[])
 
 	/* Show All */
 	clutter_actor_show_all(stage);
-
-	stage_win = clutter_x11_get_stage_window(CLUTTER_STAGE(stage));
-	disp = clutter_x11_get_default_display();
-
-	/* Disable decorator */
-	attr.override_redirect = True;
-	XChangeWindowAttributes(disp, stage_win, CWOverrideRedirect, &attr);
-
-	/* Dock window */
-	ju_set_window_type(disp, stage_win, JU_WINDOW_TYPE_DOCK);
-
+#endif
 	/* Loop */
 	clutter_main();
 
