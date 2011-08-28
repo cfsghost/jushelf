@@ -27,6 +27,7 @@ jsh_shelf_init(JshShelf *shelf)
 	Window w;
 	Display *disp;
 	gint i;
+	gint offset = 0;
 	JshWidget *widget;
 
 	DEBUG("Initializing shelf: \"%s\"\n", shelf->name);
@@ -64,6 +65,13 @@ jsh_shelf_init(JshShelf *shelf)
 
 		jsh_widget_init(shelf->parent, widget);
 
+		if (shelf->place < JSH_PLACE_LEFT) {
+			clutter_actor_set_x(widget->container, (gfloat)offset);
+			offset += (gint)clutter_actor_get_width(widget->container);
+		} else {
+			clutter_actor_set_y(widget->container, (gfloat)offset);
+			offset += (gint)clutter_actor_get_height(widget->container);
+		}
 		clutter_container_add_actor(CLUTTER_CONTAINER(shelf->window), widget->container);
 	}
 }

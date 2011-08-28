@@ -19,10 +19,11 @@ jsh_build_shelf(JuShelf *jushelf, JshConf *conf, JsonNode *node, const gchar *sh
 	JshShelf *shelf;
 	JshWidget *widget;
 	JsonNode *group_node;
+	JsonNode *widget_node;
 	JsonObject *object;
-	GList *members = NULL;
+	GList *widgets = NULL;
 	GList *listnode = NULL;
-	gchar *member;
+	const gchar *module_name;
 
 	DEBUG("Create a shelf - \"%s\"\n", shelf_name);
 	object = json_node_get_object(node);
@@ -38,16 +39,20 @@ jsh_build_shelf(JuShelf *jushelf, JshConf *conf, JsonNode *node, const gchar *sh
 	/*  Initializing widgets */
 	group_node = jsh_conf_get_member(conf, node, "widgets", NULL);
 
-	members = jsh_conf_get_members(conf, group_node, NULL);
-	for (listnode = members; listnode; listnode = g_list_next(listnode)) {
-		member = (gchar *)listnode->data;
+	widgets = json_array_get_elements(json_node_get_array(group_node));
+	for (listnode = widgets; listnode; listnode = g_list_next(listnode)) {
+		widget_node = (JsonNode *)listnode->data;
 
+		/* Get module name */
+		object = json_node_get_object(widget_node);
+		module_name = json_object_get_string_member(object, "module");
+		
 		/* create widgets */
-		widget = jsh_widget_new(jushelf, member);
+		widget = jsh_widget_new(jushelf, module_name);
 		g_ptr_array_add(shelf->widgets, widget);
 
 		/* call widget function to read config */
-		jsh_widget_config(jushelf, widget, jsh_conf_get_member(conf, group_node, member, NULL));
+		jsh_widget_config(jushelf, widget, widget_node);
 	}
 
 	return shelf;
