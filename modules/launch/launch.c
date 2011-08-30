@@ -76,14 +76,14 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 		"scale-gravity", CLUTTER_GRAVITY_CENTER,
 		NULL);
 	clutter_state_set(launch->state, NULL, "active",
-		launch->container, "scale-x", CLUTTER_LINEAR, 1.5,
-		launch->container, "scale-y", CLUTTER_LINEAR, 1.5,
+		launch->container, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.5,
+		launch->container, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.5,
 		NULL);
 	clutter_state_set(launch->state, NULL, "normal",
-		launch->container, "scale-x", CLUTTER_LINEAR, 1.0,
-		launch->container, "scale-y", CLUTTER_LINEAR, 1.0,
+		launch->container, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.0,
+		launch->container, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.0,
 		NULL);
-	clutter_state_set_duration(launch->state, NULL, NULL, 200);
+	clutter_state_set_duration(launch->state, NULL, NULL, 360);
 
 	/* Define events */
 	g_signal_connect_swapped(launch->container, "button-press-event",
