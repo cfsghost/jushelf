@@ -68,6 +68,13 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->icon_actor);
 	clutter_container_add_actor(CLUTTER_CONTAINER(widget->container), launch->container);
 
+/*
+	if (widget->orientation == JSH_ORIENTATION_HORIZONTAL) {
+		clutter_actor_set_width(widget->container, clutter_actor_get_width(launch->container));
+	} else {
+		clutter_actor_set_height(widget->container, clutter_actor_get_height(launch->container));
+	}
+*/
 	/* Set behavior */
 	clutter_actor_set_reactive(launch->container, TRUE);
 
@@ -114,6 +121,8 @@ launch_resize(JshWidget *widget)
 		clutter_actor_set_request_mode(launch->icon_actor, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
 		clutter_actor_set_width(launch->icon_actor, clutter_actor_get_width(widget->container));
 	}
+
+	clutter_actor_get_size(launch->icon_actor, &widget->width, &widget->height);
 }
 
 JshModuleClass module_class = {

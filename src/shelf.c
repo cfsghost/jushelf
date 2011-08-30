@@ -42,10 +42,43 @@ jsh_shelf_init(JshShelf *shelf)
 	clutter_container_add_actor(CLUTTER_CONTAINER(shelf->window), shelf->container);
 
 	/* shelf size */
-	if (shelf->place < JSH_PLACE_LEFT)
-		clutter_actor_set_height(shelf->window, shelf->size);
-	else
-		clutter_actor_set_width(shelf->window, shelf->size);
+	clutter_actor_set_size(shelf->window, shelf->size, shelf->size);
+
+	/* Initializing widget */
+	for (i = 0; i < shelf->widgets->len; ++i) {
+		widget = g_ptr_array_index(shelf->widgets, i);
+
+		if (shelf->orientation == JSH_ORIENTATION_HORIZONTAL) {
+			/* set widget size */
+			clutter_actor_set_request_mode(widget->container, CLUTTER_REQUEST_WIDTH_FOR_HEIGHT);
+			clutter_actor_set_height(widget->container, shelf->size * 0.75);
+
+			/* notify widget to resize */
+			jsh_widget_resize(shelf->parent, widget);
+
+			/* put it on center */
+			offset += widget->width;
+			clutter_actor_set_position(widget->container, (gfloat)offset, (gfloat)shelf->size * 0.5);
+			clutter_container_add_actor(CLUTTER_CONTAINER(shelf->container), widget->container);
+
+			DEBUG("W: %f\n", clutter_actor_get_width(widget->container));
+			DEBUG("S: %f\n", clutter_actor_get_width(shelf->container));
+			DEBUG("O: %f\n", offset);
+
+			/* Update window size */
+			//clutter_actor_set_width(shelf->window, clutter_actor_get_width(shelf->container));
+			clutter_actor_set_width(shelf->window, offset + widget->width);
+		} else {
+			clutter_actor_set_request_mode(widget->container, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
+			clutter_actor_set_width(widget->container, shelf->size * 0.75);
+			offset += clutter_actor_get_height(widget->container) * 0.5;
+
+			/* put it on center */
+			clutter_actor_set_position(widget->container, (gfloat)shelf->size * 0.5, (gfloat)offset);
+
+			clutter_container_add_actor(CLUTTER_CONTAINER(shelf->container), widget->container);
+		}
+	}
 
 	clutter_actor_show(shelf->window);
 
@@ -60,28 +93,4 @@ jsh_shelf_init(JshShelf *shelf)
 	/* Set window style */
 	jsh_window_set_type(disp, w, JSH_WINDOW_TYPE_DOCK);
 	jsh_window_set_decorator(disp, w, FALSE);
-
-	/* Initializing widget */
-	for (i = 0; i < shelf->widgets->len; ++i) {
-		widget = g_ptr_array_index(shelf->widgets, i);
-
-		if (shelf->orientation == JSH_ORIENTATION_HORIZONTAL) {
-			clutter_actor_set_request_mode(widget->container, CLUTTER_REQUEST_WIDTH_FOR_HEIGHT);
-			clutter_actor_set_height(widget->container, shelf->size * 0.75);
-			offset += clutter_actor_get_width(widget->container) * 0.5;
-
-			/* put it on center */
-			clutter_actor_set_position(widget->container, (gfloat)offset, (gfloat)shelf->size * 0.5);
-		} else {
-			clutter_actor_set_request_mode(widget->container, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
-			clutter_actor_set_width(widget->container, shelf->size * 0.75);
-			offset += clutter_actor_get_height(widget->container) * 0.5;
-
-			/* put it on center */
-			clutter_actor_set_position(widget->container, (gfloat)shelf->size * 0.5, (gfloat)offset);
-		}
-		clutter_container_add_actor(CLUTTER_CONTAINER(shelf->container), widget->container);
-
-		jsh_widget_resize(shelf->parent, widget);
-	}
 }

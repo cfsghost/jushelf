@@ -14,6 +14,8 @@ struct _JshWidget {
 	ClutterActor *container;
 	JshModule *module;
 	gpointer priv;
+	gfloat width;
+	gfloat height;
 };
 typedef struct _JshWidget JshWidget;
 
