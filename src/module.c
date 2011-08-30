@@ -109,13 +109,13 @@ jsh_module_find(JuShelf *jushelf, const gchar *module_name)
 }
 
 void
-jsh_module_constructor(JshWidget *widget)
+jsh_module_constructor(JshWidget *widget, JsonNode *node)
 {
-	widget->module->module_class->constructor(widget);
+	widget->module->module_class->constructor(widget, node);
 }
 
 void
-jsh_module_config(JshWidget *widget, JsonNode *node)
+jsh_module_resize(JshWidget *widget)
 {
-	widget->module->module_class->config(widget, node);
+	widget->module->module_class->resize(widget);
 }

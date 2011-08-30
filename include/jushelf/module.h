@@ -10,8 +10,8 @@ struct _JshModuleClass {
 	gchar *name;
 	gchar *version;
 	gchar *description;
-	void (*constructor)(JshWidget *);
-	void (*config)(JshWidget *, JsonNode *);
+	void (*constructor)(JshWidget *, JsonNode *);
+	void (*resize)(JshWidget *);
 };
 typedef struct _JshModuleClass JshModuleClass;
 

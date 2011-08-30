@@ -34,6 +34,11 @@ jsh_build_shelf(JuShelf *jushelf, JshConf *conf, JsonNode *node, const gchar *sh
 	shelf->size = json_object_get_int_member(object, "size");
 	shelf->opacity = json_object_get_int_member(object, "opacity");
 	shelf->place = json_object_get_int_member(object, "place");
+	if (shelf->place < JSH_PLACE_LEFT)
+		shelf->orientation = JSH_ORIENTATION_HORIZONTAL;
+	else
+		shelf->orientation = JSH_ORIENTATION_VERTICAL;
+
 	DEBUG("place=%d\n", shelf->place);
 
 	/*  Initializing widgets */
@@ -49,10 +54,11 @@ jsh_build_shelf(JuShelf *jushelf, JshConf *conf, JsonNode *node, const gchar *sh
 		
 		/* create widgets */
 		widget = jsh_widget_new(jushelf, module_name);
+		widget->orientation = shelf->orientation;
 		g_ptr_array_add(shelf->widgets, widget);
 
 		/* call widget function to read config */
-		jsh_widget_config(jushelf, widget, widget_node);
+		jsh_widget_init(jushelf, widget, widget_node);
 	}
 
 	return shelf;
