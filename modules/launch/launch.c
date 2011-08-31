@@ -15,10 +15,18 @@ typedef struct {
 } Launch;
 
 static gboolean
-launch_clicked_cb(Launch *launch)
+launch_press_cb(Launch *launch)
+{
+	clutter_state_set_state(launch->state, "press");
+	return TRUE;
+}
+
+static gboolean
+launch_release_cb(Launch *launch)
 {
 	g_print("Execute \"%s\"\n", launch->exec);
 	g_spawn_command_line_async(launch->exec, NULL);
+	clutter_state_set_state(launch->state, "release");
 	return TRUE;
 }
 
@@ -83,15 +91,24 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 		launch->container, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, 12.0,
 		NULL);
 	clutter_state_set(launch->state, NULL, "normal",
+		launch->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
 		launch->container, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.0,
 		launch->container, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.0,
 		launch->container, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, .0,
+		NULL);
+	clutter_state_set(launch->state, NULL, "press",
+		launch->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0x88,
+		NULL);
+	clutter_state_set(launch->state, NULL, "release",
+		launch->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
 		NULL);
 	clutter_state_set_duration(launch->state, NULL, NULL, 360);
 
 	/* Define events */
 	g_signal_connect_swapped(launch->container, "button-press-event",
-		G_CALLBACK(launch_clicked_cb), launch);
+		G_CALLBACK(launch_press_cb), launch);
+	g_signal_connect_swapped(launch->container, "button-release-event",
+		G_CALLBACK(launch_release_cb), launch);
 	g_signal_connect(launch->container, "enter-event",
 		G_CALLBACK(launch_enter_cb), launch);
 	g_signal_connect_swapped(launch->container, "leave-event",
