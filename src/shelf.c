@@ -106,6 +106,11 @@ jsh_shelf_reset_place(JshShelf *shelf, gfloat offset)
 	screen = clutter_x11_get_default_screen();
 
 	switch(shelf->place) {
+	case JSH_PLACE_TOP:
+		XMoveWindow(disp, w,
+			((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
+			- clutter_actor_get_height(shelf->window) * 0.9 + offset);
+		break;
 	case JSH_PLACE_BOTTOM:
 		XMoveWindow(disp, w,
 			((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
