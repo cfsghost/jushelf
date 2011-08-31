@@ -65,30 +65,27 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 	launch->container = clutter_group_new();
 	launch->icon_actor = clutter_texture_new_from_file(launch->icon, NULL);
 	clutter_texture_set_keep_aspect_ratio(CLUTTER_TEXTURE(launch->icon_actor), TRUE);
+	clutter_texture_set_filter_quality(CLUTTER_TEXTURE(launch->icon_actor), CLUTTER_TEXTURE_QUALITY_HIGH);
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->icon_actor);
 	clutter_container_add_actor(CLUTTER_CONTAINER(widget->container), launch->container);
 
-/*
-	if (widget->orientation == JSH_ORIENTATION_HORIZONTAL) {
-		clutter_actor_set_width(widget->container, clutter_actor_get_width(launch->container));
-	} else {
-		clutter_actor_set_height(widget->container, clutter_actor_get_height(launch->container));
-	}
-*/
 	/* Set behavior */
 	clutter_actor_set_reactive(launch->container, TRUE);
 
 	launch->state = clutter_state_new();
 	g_object_set(G_OBJECT(launch->container),
 		"scale-gravity", CLUTTER_GRAVITY_CENTER,
+		"rotation-center-z-gravity", CLUTTER_GRAVITY_CENTER,
 		NULL);
 	clutter_state_set(launch->state, NULL, "active",
 		launch->container, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.5,
 		launch->container, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.5,
+		launch->container, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, 12.0,
 		NULL);
 	clutter_state_set(launch->state, NULL, "normal",
 		launch->container, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.0,
 		launch->container, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.0,
+		launch->container, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, .0,
 		NULL);
 	clutter_state_set_duration(launch->state, NULL, NULL, 360);
 

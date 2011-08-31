@@ -10,6 +10,7 @@ typedef enum {
 } JshOrientation;
 
 struct _JshWidget { 
+	gpointer parent;
 	JshOrientation orientation;
 	ClutterActor *container;
 	JshModule *module;

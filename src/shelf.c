@@ -38,13 +38,12 @@ jsh_shelf_init(JshShelf *shelf)
 	shelf->window = clutter_stage_new();
 	shelf->container = clutter_group_new();
 	clutter_stage_set_title(CLUTTER_STAGE(shelf->window), shelf->name);
-	clutter_stage_set_user_resizable(CLUTTER_STAGE(shelf->window), FALSE);
 	clutter_stage_set_use_alpha(CLUTTER_STAGE(shelf->window), TRUE);
 	clutter_actor_set_opacity(shelf->window, shelf->opacity);
 	clutter_container_add_actor(CLUTTER_CONTAINER(shelf->window), shelf->container);
 
 	/* shelf size */
-	clutter_actor_set_size(shelf->window, shelf->size, shelf->size);
+	clutter_actor_set_size(shelf->window, shelf->size * 2, shelf->size * 2);
 
 	/* Initializing widget */
 	for (i = 0; i < shelf->widgets->len; ++i) {
@@ -58,17 +57,12 @@ jsh_shelf_init(JshShelf *shelf)
 			/* notify widget to resize */
 			jsh_widget_resize(shelf->parent, widget);
 
-			/* put it on center */
+			/* put widget on center */
 			offset += widget->width;
-			clutter_actor_set_position(widget->container, (gfloat)offset, (gfloat)shelf->size * 0.5);
+			clutter_actor_set_position(widget->container, (gfloat)offset, (gfloat)shelf->size);
 			clutter_container_add_actor(CLUTTER_CONTAINER(shelf->container), widget->container);
 
-			DEBUG("W: %f\n", clutter_actor_get_width(widget->container));
-			DEBUG("S: %f\n", clutter_actor_get_width(shelf->container));
-			DEBUG("O: %f\n", offset);
-
 			/* Update window size */
-			//clutter_actor_set_width(shelf->window, clutter_actor_get_width(shelf->container));
 			clutter_actor_set_width(shelf->window, offset + widget->width);
 		} else {
 			clutter_actor_set_request_mode(widget->container, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
@@ -84,24 +78,56 @@ jsh_shelf_init(JshShelf *shelf)
 
 	clutter_actor_show(shelf->window);
 
+	jsh_shelf_reset_place(shelf, shelf->size * 1.5);
+#if 0
 	/* Get X11 window of stage */
 	w = clutter_x11_get_stage_window(CLUTTER_STAGE(shelf->window));
 	disp = clutter_x11_get_default_display();
 	screen = clutter_x11_get_default_screen();
 
-	DEBUG("Screen Size: %dx%d\n", DisplayWidth(disp, screen), DisplayHeight(disp, screen));
-
 	XMoveWindow(disp, w,
 		((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
 		(gfloat)DisplayHeight(disp, screen) - clutter_actor_get_height(shelf->window));
-/*
-	clutter_actor_set_position(shelf->window,
-		((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
-		(gfloat)DisplayHeight(disp, screen) - clutter_actor_get_width(shelf->window));
-*/
+#endif
 	DEBUG("Initializing Window of Shelf\n");
+	jsh_shelf_window_init(shelf);
+}
+
+void
+jsh_shelf_reset_place(JshShelf *shelf, gfloat offset)
+{
+	Window w;
+	Display *disp;
+	int screen;
+
+	/* Get X11 window of stage */
+	w = clutter_x11_get_stage_window(CLUTTER_STAGE(shelf->window));
+	disp = clutter_x11_get_default_display();
+	screen = clutter_x11_get_default_screen();
+
+	switch(shelf->place) {
+	case JSH_PLACE_BOTTOM:
+		XMoveWindow(disp, w,
+			((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
+			(gfloat)DisplayHeight(disp, screen) - clutter_actor_get_height(shelf->window) * 0.1 - offset);
+		break;
+	}
+}
+
+void
+jsh_shelf_window_init(JshShelf *shelf)
+{
+	Window w;
+	Display *disp;
+	int screen;
+
+	/* Get X11 window of stage */
+	w = clutter_x11_get_stage_window(CLUTTER_STAGE(shelf->window));
+	disp = clutter_x11_get_default_display();
+	screen = clutter_x11_get_default_screen();
 
 	/* Set window style */
 	jsh_window_set_type(disp, w, JSH_WINDOW_TYPE_DOCK);
 	jsh_window_set_decorator(disp, w, FALSE);
 }
+

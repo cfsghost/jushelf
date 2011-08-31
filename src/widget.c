@@ -17,6 +17,7 @@ static gboolean
 jsh_widget_focus_cb(ClutterActor *actor, ClutterEvent *event, gpointer data)
 {
 	JshWidget *widget = (JshWidget *)data;
+	JshShelf *shelf = (JshShelf *)widget->parent;
 
 	clutter_actor_raise_top(widget->container);
 
@@ -36,8 +37,9 @@ jsh_widget_new(JuShelf *jushelf, const gchar *module_name)
 }
 
 void
-jsh_widget_init(JuShelf *jushelf, JshWidget *widget, JsonNode *node)
+jsh_widget_init(JuShelf *jushelf, JshShelf *shelf, JshWidget *widget, JsonNode *node)
 {
+	widget->parent = (gpointer)shelf;
 	widget->container = clutter_group_new();
 	clutter_actor_set_anchor_point_from_gravity(widget->container, CLUTTER_GRAVITY_CENTER);
 

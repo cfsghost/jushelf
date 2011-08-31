@@ -58,7 +58,7 @@ jsh_build_shelf(JuShelf *jushelf, JshConf *conf, JsonNode *node, const gchar *sh
 		g_ptr_array_add(shelf->widgets, widget);
 
 		/* call widget function to read config */
-		jsh_widget_init(jushelf, widget, widget_node);
+		jsh_widget_init(jushelf, shelf, widget, widget_node);
 	}
 
 	return shelf;
