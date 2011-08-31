@@ -27,10 +27,12 @@ jsh_shelf_init(JshShelf *shelf)
 	Window w;
 	Display *disp;
 	gint i;
+	int screen;
 	gfloat offset = 0;
 	JshWidget *widget;
 
 	DEBUG("Initializing shelf: \"%s\"\n", shelf->name);
+	DEBUG("Create Window of Shelf\n");
 
 	/* Initializing stage of shelf */
 	shelf->window = clutter_stage_new();
@@ -82,12 +84,21 @@ jsh_shelf_init(JshShelf *shelf)
 
 	clutter_actor_show(shelf->window);
 
-	DEBUG("Create Window of Shelf\n");
-
 	/* Get X11 window of stage */
 	w = clutter_x11_get_stage_window(CLUTTER_STAGE(shelf->window));
 	disp = clutter_x11_get_default_display();
+	screen = clutter_x11_get_default_screen();
 
+	DEBUG("Screen Size: %dx%d\n", DisplayWidth(disp, screen), DisplayHeight(disp, screen));
+
+	XMoveWindow(disp, w,
+		((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
+		(gfloat)DisplayHeight(disp, screen) - clutter_actor_get_height(shelf->window));
+/*
+	clutter_actor_set_position(shelf->window,
+		((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
+		(gfloat)DisplayHeight(disp, screen) - clutter_actor_get_width(shelf->window));
+*/
 	DEBUG("Initializing Window of Shelf\n");
 
 	/* Set window style */
