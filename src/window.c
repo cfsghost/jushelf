@@ -93,17 +93,4 @@ jsh_window_set_decorator(Display *disp, Window w, gboolean enabled)
 
 	if (hints != &new_hints)
 		XFree(hints);
-
-	/* Override Redirect */
-	if (enabled) {
-		/* Enable decorator */
-		attr.override_redirect = False;
-	} else {
-		/* Disable decorator */
-		attr.override_redirect = True;
-	}
-
-	XGrabServer(disp);
-	XChangeWindowAttributes(disp, w, CWOverrideRedirect, &attr);
-	XUngrabServer(disp);
 }
