@@ -1,4 +1,4 @@
-SUBDIRS = include src modules po
+SUBDIRS = include src modules po data
 
 EXTRA_DIST = \
 	intltool-extract.in \

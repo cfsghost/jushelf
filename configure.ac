@@ -44,4 +44,5 @@ AC_OUTPUT([
   modules/Makefile
   modules/launch/Makefile
   po/Makefile.in
+  data/Makefile
 ])
