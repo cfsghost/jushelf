@@ -33,7 +33,6 @@ launch_release_cb(Launch *launch)
 static gboolean
 launch_leave_cb(Launch *launch)
 {
-	g_print("leave\n");
 	clutter_state_set_state(launch->state, "normal");
 	return TRUE;
 }
@@ -43,7 +42,6 @@ launch_enter_cb(ClutterActor *actor, ClutterEvent *event, gpointer data)
 {
 	Launch *launch = (Launch *)data;
 
-	g_print("enter\n");
 	clutter_state_set_state(launch->state, "active");
 	return FALSE;
 }
