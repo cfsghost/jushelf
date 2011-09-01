@@ -33,6 +33,7 @@ jsh_build_shelf(JuShelf *jushelf, JshConf *conf, JsonNode *node, const gchar *sh
 	shelf->name = g_strdup(shelf_name);
 	shelf->size = json_object_get_int_member(object, "size");
 	shelf->opacity = json_object_get_int_member(object, "opacity");
+	shelf->autohide = json_object_get_int_member(object, "autohide");
 	shelf->place = json_object_get_int_member(object, "place");
 	if (shelf->place < JSH_PLACE_LEFT)
 		shelf->orientation = JSH_ORIENTATION_HORIZONTAL;

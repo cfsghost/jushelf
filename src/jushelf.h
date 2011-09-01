@@ -45,6 +45,7 @@ typedef struct {
 	gchar *name;
 	gint size;
 	guint8 opacity;
+	gboolean autohide;
 	JshPlace place;
 	JshOrientation orientation;
 } JshShelf;

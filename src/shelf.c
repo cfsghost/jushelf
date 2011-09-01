@@ -9,6 +9,20 @@
 #include "shelf.h"
 #include "window.h"
 
+static gboolean
+jsh_shelf_event_handler(ClutterActor *actor, ClutterEvent *event, gpointer data)
+{
+	JshShelf *shelf = (JshShelf *)data;
+
+	if (event->type == CLUTTER_ENTER) {
+		jsh_shelf_reset_place(shelf, shelf->size * 1.5);
+	} else if (event->type == CLUTTER_LEAVE) {
+		jsh_shelf_reset_place(shelf, 0);
+	}
+
+	return FALSE;
+}
+
 JshShelf *
 jsh_shelf_new(JuShelf *jushelf)
 {
@@ -41,6 +55,14 @@ jsh_shelf_init(JshShelf *shelf)
 	clutter_stage_set_use_alpha(CLUTTER_STAGE(shelf->window), TRUE);
 	clutter_actor_set_opacity(shelf->window, shelf->opacity);
 	clutter_container_add_actor(CLUTTER_CONTAINER(shelf->window), shelf->container);
+
+	/* Autohide */
+	if (shelf->autohide) {
+		DEBUG("Enable Autohide\n");
+		clutter_actor_set_reactive(shelf->window, TRUE);
+		g_signal_connect(shelf->window, "captured-event",
+			G_CALLBACK(jsh_shelf_event_handler), shelf);
+	}
 
 	/* shelf size */
 	clutter_actor_set_size(shelf->window, shelf->size * 2, shelf->size * 2);
@@ -78,7 +100,10 @@ jsh_shelf_init(JshShelf *shelf)
 
 	clutter_actor_show(shelf->window);
 
-	jsh_shelf_reset_place(shelf, shelf->size * 1.5);
+	if (shelf->autohide)
+		jsh_shelf_reset_place(shelf, 0);
+	else
+		jsh_shelf_reset_place(shelf, shelf->size * 1.5);
 #if 0
 	/* Get X11 window of stage */
 	w = clutter_x11_get_stage_window(CLUTTER_STAGE(shelf->window));
