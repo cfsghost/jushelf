@@ -10,20 +10,6 @@
 #include "window.h"
 
 static gboolean
-jsh_shelf_hide(gpointer data)
-{
-	JshShelf *shelf = (JshShelf *)data;
-
-	jsh_shelf_reset_place(shelf, 0);
-}
-
-static void
-jsh_shelf_act_handler(ClutterStage *stage, gpointer data)
-{
-	JshShelf *shelf = (JshShelf *)data;
-}
-
-static gboolean
 jsh_shelf_event_handler(ClutterActor *actor, ClutterEvent *event, gpointer data)
 {
 	JshShelf *shelf = (JshShelf *)data;
@@ -83,8 +69,6 @@ jsh_shelf_init(JshShelf *shelf)
 		DEBUG("Enable Autohide\n");
 		g_signal_connect(shelf->window, "captured-event",
 			G_CALLBACK(jsh_shelf_event_handler), shelf);
-		g_signal_connect(shelf->window, "activate",
-			G_CALLBACK(jsh_shelf_act_handler), shelf);
 	}
 
 	/* shelf size */
