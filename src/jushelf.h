@@ -41,13 +41,15 @@ typedef struct {
 	JuShelf *parent;
 	ClutterActor *window;
 	ClutterActor *container;
-	GPtrArray *widgets;
+
+	/* Properties */
 	gchar *name;
 	gint size;
 	guint8 opacity;
 	gboolean autohide;
 	JshPlace place;
 	JshOrientation orientation;
+	GPtrArray *widgets;
 } JshShelf;
 
 struct _JuShelf {

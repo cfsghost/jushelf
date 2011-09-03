@@ -10,14 +10,36 @@
 #include "window.h"
 
 static gboolean
+jsh_shelf_hide(gpointer data)
+{
+	JshShelf *shelf = (JshShelf *)data;
+
+	jsh_shelf_reset_place(shelf, 0);
+}
+
+static void
+jsh_shelf_act_handler(ClutterStage *stage, gpointer data)
+{
+	JshShelf *shelf = (JshShelf *)data;
+}
+
+static gboolean
 jsh_shelf_event_handler(ClutterActor *actor, ClutterEvent *event, gpointer data)
 {
 	JshShelf *shelf = (JshShelf *)data;
 
 	if (event->type == CLUTTER_ENTER) {
-		jsh_shelf_reset_place(shelf, shelf->size * 1.5);
+		if (event->any.source == shelf->window) {
+			jsh_shelf_reset_place(shelf, shelf->size * 1.5);
+			return TRUE;
+		}
+
 	} else if (event->type == CLUTTER_LEAVE) {
-		jsh_shelf_reset_place(shelf, 0);
+		if (event->any.source == shelf->window && event->crossing.related == NULL) {
+				jsh_shelf_reset_place(shelf, 0);
+
+			return TRUE;
+		}
 	}
 
 	return FALSE;
@@ -59,9 +81,10 @@ jsh_shelf_init(JshShelf *shelf)
 	/* Autohide */
 	if (shelf->autohide) {
 		DEBUG("Enable Autohide\n");
-		clutter_actor_set_reactive(shelf->window, TRUE);
 		g_signal_connect(shelf->window, "captured-event",
 			G_CALLBACK(jsh_shelf_event_handler), shelf);
+		g_signal_connect(shelf->window, "activate",
+			G_CALLBACK(jsh_shelf_act_handler), shelf);
 	}
 
 	/* shelf size */
@@ -99,11 +122,6 @@ jsh_shelf_init(JshShelf *shelf)
 	}
 
 	clutter_actor_show(shelf->window);
-
-	if (shelf->autohide)
-		jsh_shelf_reset_place(shelf, 0);
-	else
-		jsh_shelf_reset_place(shelf, shelf->size * 1.5);
 #if 0
 	/* Get X11 window of stage */
 	w = clutter_x11_get_stage_window(CLUTTER_STAGE(shelf->window));
@@ -116,6 +134,11 @@ jsh_shelf_init(JshShelf *shelf)
 #endif
 	DEBUG("Initializing Window of Shelf\n");
 	jsh_shelf_window_init(shelf);
+
+	if (shelf->autohide)
+		jsh_shelf_reset_place(shelf, 0);
+	else
+		jsh_shelf_reset_place(shelf, shelf->size * 1.5);
 }
 
 void
