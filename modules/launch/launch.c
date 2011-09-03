@@ -95,6 +95,7 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 
 	/* Label */
 	launch->label_actor = clutter_text_new_full("Sans 12pt", launch->name, launch->text_color);
+	clutter_actor_set_anchor_point_from_gravity(launch->label_actor, CLUTTER_GRAVITY_CENTER);
 	clutter_actor_set_opacity(launch->label_actor, 0x00);
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->label_actor);
 
@@ -160,6 +161,11 @@ launch_resize(JshWidget *widget)
 		clutter_actor_set_height(launch->container, clutter_actor_get_height(widget->container));
 		clutter_actor_set_request_mode(launch->icon_actor, CLUTTER_REQUEST_WIDTH_FOR_HEIGHT);
 		clutter_actor_set_height(launch->icon_actor, clutter_actor_get_height(widget->container));
+
+		/* Label position */
+		clutter_actor_set_position(launch->label_actor,
+			clutter_actor_get_width(launch->icon_actor) * 0.5,
+			-clutter_actor_get_height(launch->icon_actor) * 0.4);
 	} else {
 		clutter_actor_set_request_mode(launch->container, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
 		clutter_actor_set_width(launch->container, clutter_actor_get_width(widget->container));
