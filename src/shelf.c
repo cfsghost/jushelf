@@ -94,31 +94,29 @@ jsh_shelf_init(JshShelf *shelf)
 			/* Update window size */
 			clutter_actor_set_width(shelf->window, offset + widget->width);
 		} else {
+			/* set widget size */
 			clutter_actor_set_request_mode(widget->container, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
 			clutter_actor_set_width(widget->container, shelf->size * 0.75);
-			offset += clutter_actor_get_height(widget->container) * 0.5;
 
-			/* put it on center */
-			clutter_actor_set_position(widget->container, (gfloat)shelf->size * 0.5, (gfloat)offset);
+			/* notify widget to resize */
+			jsh_widget_resize(shelf->parent, widget);
 
+			/* put widget on center */
+			offset += widget->height;
+			clutter_actor_set_position(widget->container, (gfloat)shelf->size, (gfloat)offset);
 			clutter_container_add_actor(CLUTTER_CONTAINER(shelf->container), widget->container);
+
+			/* Update window size */
+			clutter_actor_set_height(shelf->window, offset + widget->height);
 		}
 	}
 
 	clutter_actor_show(shelf->window);
-#if 0
-	/* Get X11 window of stage */
-	w = clutter_x11_get_stage_window(CLUTTER_STAGE(shelf->window));
-	disp = clutter_x11_get_default_display();
-	screen = clutter_x11_get_default_screen();
 
-	XMoveWindow(disp, w,
-		((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
-		(gfloat)DisplayHeight(disp, screen) - clutter_actor_get_height(shelf->window));
-#endif
 	DEBUG("Initializing Window of Shelf\n");
 	jsh_shelf_window_init(shelf);
 
+	/* Place by default */
 	if (shelf->autohide)
 		jsh_shelf_reset_place(shelf, 0);
 	else
