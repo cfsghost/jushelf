@@ -41,13 +41,14 @@ jsh_widget_init(JuShelf *jushelf, JshShelf *shelf, JshWidget *widget, JsonNode *
 {
 	widget->parent = (gpointer)shelf;
 	widget->container = clutter_group_new();
-	clutter_actor_set_anchor_point_from_gravity(widget->container, CLUTTER_GRAVITY_CENTER);
+//	clutter_actor_set_anchor_point_from_gravity(widget->container, CLUTTER_GRAVITY_CENTER);
 
 	/* Got focus and raise */
+/*
 	clutter_actor_set_reactive(widget->container, TRUE);
 	g_signal_connect(widget->container, "enter-event",
 		G_CALLBACK(jsh_widget_focus_cb), widget);
-
+*/
 	jsh_module_constructor(widget, node);
 }
 

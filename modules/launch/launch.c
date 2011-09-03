@@ -8,43 +8,58 @@
 typedef struct {
 	ClutterActor *container;
 	ClutterActor *icon_actor;
+	ClutterActor *label_actor;
+	ClutterColor *text_color;
 	ClutterState *state;
+	ClutterState *label_state;
 	gchar *icon;
 	gchar *name;
 	gchar *exec;
 } Launch;
 
 static gboolean
-launch_press_cb(Launch *launch)
+launch_press_cb(JshWidget *widget)
 {
-	clutter_state_set_state(launch->state, "press");
+	Launch *launch = (Launch *)widget->priv;
+
+	clutter_state_set_state(launch->state, "icon-press");
 	return TRUE;
 }
 
 static gboolean
-launch_release_cb(Launch *launch)
+launch_release_cb(JshWidget *widget)
 {
+	Launch *launch = (Launch *)widget->priv;
+
 	if (launch->exec)
 		g_spawn_command_line_async(launch->exec, NULL);
 
-	clutter_state_set_state(launch->state, "release");
+	clutter_state_set_state(launch->state, "icon-release");
 	return TRUE;
 }
 
 static gboolean
-launch_leave_cb(Launch *launch)
+launch_leave_cb(JshWidget *widget)
 {
-	clutter_state_set_state(launch->state, "normal");
+	Launch *launch = (Launch *)widget->priv;
+
+	clutter_state_set_state(launch->state, "icon-normal");
+	clutter_state_set_state(launch->label_state, "deactivate");
 	return TRUE;
 }
 
 static gboolean
-launch_enter_cb(ClutterActor *actor, ClutterEvent *event, gpointer data)
+launch_enter_cb(JshWidget *widget)
 {
-	Launch *launch = (Launch *)data;
+	Launch *launch = (Launch *)widget->priv;
 
-	clutter_state_set_state(launch->state, "active");
-	return FALSE;
+	/* Raise top */
+	clutter_actor_raise_top(widget->container);
+
+	clutter_state_set_state(launch->state, "icon-active");
+	clutter_state_set_state(launch->label_state, "active");
+		
+	return TRUE;
 }
 
 static void
@@ -62,8 +77,10 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 		launch->icon = g_strdup(json_object_get_string_member(object, "icon"));
 		launch->name = g_strdup(json_object_get_string_member(object, "name"));
 		launch->exec = g_strdup(json_object_get_string_member(object, "execute"));
+		launch->text_color = clutter_color_new(0xff, 0xff, 0xff, 0xff);
 	} else {
 		launch->name = g_strdup("Application");
+		launch->text_color = clutter_color_new(0xff, 0xff, 0xff, 0xff);
 	}
 
 	widget->priv = (gpointer)launch;
@@ -76,42 +93,57 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->icon_actor);
 	clutter_container_add_actor(CLUTTER_CONTAINER(widget->container), launch->container);
 
-	/* Set behavior */
-	clutter_actor_set_reactive(launch->container, TRUE);
+	/* Label */
+	launch->label_actor = clutter_text_new_full("Sans 12pt", launch->name, launch->text_color);
+	clutter_actor_set_opacity(launch->label_actor, 0x00);
+	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->label_actor);
+
+	/* Set icon behavior */
+	clutter_actor_set_reactive(launch->icon_actor, TRUE);
 
 	launch->state = clutter_state_new();
-	g_object_set(G_OBJECT(launch->container),
+	g_object_set(G_OBJECT(launch->icon_actor),
 		"scale-gravity", CLUTTER_GRAVITY_CENTER,
 		"rotation-center-z-gravity", CLUTTER_GRAVITY_CENTER,
 		NULL);
-	clutter_state_set(launch->state, NULL, "active",
-		launch->container, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.5,
-		launch->container, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.5,
-		launch->container, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, 12.0,
+	clutter_state_set(launch->state, NULL, "icon-active",
+		launch->icon_actor, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.5,
+		launch->icon_actor, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.5,
+		launch->icon_actor, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, 12.0,
 		NULL);
-	clutter_state_set(launch->state, NULL, "normal",
-		launch->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
-		launch->container, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.0,
-		launch->container, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.0,
-		launch->container, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, .0,
+	clutter_state_set(launch->state, NULL, "icon-normal",
+		launch->icon_actor, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
+		launch->icon_actor, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.0,
+		launch->icon_actor, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.0,
+		launch->icon_actor, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, .0,
 		NULL);
-	clutter_state_set(launch->state, NULL, "press",
-		launch->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0x88,
+	clutter_state_set(launch->state, NULL, "icon-press",
+		launch->icon_actor, "opacity", CLUTTER_EASE_OUT_CUBIC, 0x88,
 		NULL);
-	clutter_state_set(launch->state, NULL, "release",
-		launch->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
+	clutter_state_set(launch->state, NULL, "icon-release",
+		launch->icon_actor, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
 		NULL);
 	clutter_state_set_duration(launch->state, NULL, NULL, 360);
 
+	/* Set label behavior */
+	launch->label_state = clutter_state_new();
+	clutter_state_set_duration(launch->label_state, NULL, NULL, 360);
+	clutter_state_set(launch->label_state, NULL, "active",
+		launch->label_actor, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
+		NULL);
+	clutter_state_set(launch->label_state, NULL, "deactivate",
+		launch->label_actor, "opacity", CLUTTER_EASE_OUT_CUBIC, 0x00,
+		NULL);
+
 	/* Define events */
-	g_signal_connect_swapped(launch->container, "button-press-event",
-		G_CALLBACK(launch_press_cb), launch);
-	g_signal_connect_swapped(launch->container, "button-release-event",
-		G_CALLBACK(launch_release_cb), launch);
-	g_signal_connect(launch->container, "enter-event",
-		G_CALLBACK(launch_enter_cb), launch);
-	g_signal_connect_swapped(launch->container, "leave-event",
-		G_CALLBACK(launch_leave_cb), launch);
+	g_signal_connect_swapped(launch->icon_actor, "button-press-event",
+		G_CALLBACK(launch_press_cb), widget);
+	g_signal_connect_swapped(launch->icon_actor, "button-release-event",
+		G_CALLBACK(launch_release_cb), widget);
+	g_signal_connect_swapped(launch->icon_actor, "enter-event",
+		G_CALLBACK(launch_enter_cb), widget);
+	g_signal_connect_swapped(launch->icon_actor, "leave-event",
+		G_CALLBACK(launch_leave_cb), widget);
 
 	g_print("Constructor\n");
 }

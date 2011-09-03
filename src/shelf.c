@@ -75,6 +75,7 @@ jsh_shelf_init(JshShelf *shelf)
 	clutter_actor_set_size(shelf->window, shelf->size * 2, shelf->size * 2);
 
 	/* Initializing widget */
+	offset = shelf->size;
 	for (i = 0; i < shelf->widgets->len; ++i) {
 		widget = g_ptr_array_index(shelf->widgets, i);
 
@@ -87,12 +88,12 @@ jsh_shelf_init(JshShelf *shelf)
 			jsh_widget_resize(shelf->parent, widget);
 
 			/* put widget on center */
-			offset += widget->width;
 			clutter_actor_set_position(widget->container, (gfloat)offset, (gfloat)shelf->size);
 			clutter_container_add_actor(CLUTTER_CONTAINER(shelf->container), widget->container);
 
 			/* Update window size */
-			clutter_actor_set_width(shelf->window, offset + widget->width);
+			offset += widget->width;
+			clutter_actor_set_width(shelf->window, offset + shelf->size);
 		} else {
 			/* set widget size */
 			clutter_actor_set_request_mode(widget->container, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
