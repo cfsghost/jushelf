@@ -9,6 +9,9 @@ typedef struct {
 	ClutterActor *container;
 	ClutterActor *icon_actor;
 	ClutterActor *label_actor;
+	ClutterActor *label_text_actor;
+	ClutterActor *label_bg_actor;
+	ClutterColor *bg_color;
 	ClutterColor *text_color;
 	ClutterState *state;
 	ClutterState *label_state;
@@ -83,6 +86,8 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 		launch->text_color = clutter_color_new(0xff, 0xff, 0xff, 0xff);
 	}
 
+	launch->bg_color = clutter_color_new(0x44, 0x44, 0x44, 0xff);
+
 	widget->priv = (gpointer)launch;
 
 	/* Initializing object */
@@ -94,10 +99,27 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 	clutter_container_add_actor(CLUTTER_CONTAINER(widget->container), launch->container);
 
 	/* Label */
-	launch->label_actor = clutter_text_new_full("Sans 12pt", launch->name, launch->text_color);
-	clutter_actor_set_anchor_point_from_gravity(launch->label_actor, CLUTTER_GRAVITY_CENTER);
+	launch->label_actor = clutter_group_new();
 	clutter_actor_set_opacity(launch->label_actor, 0x00);
+	clutter_actor_set_anchor_point_from_gravity(launch->label_actor, CLUTTER_GRAVITY_CENTER);
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->label_actor);
+
+	/* Label text */
+	launch->label_text_actor = clutter_text_new_full("Sans 12pt", launch->name, launch->text_color);
+	clutter_container_add_actor(CLUTTER_CONTAINER(launch->label_actor), launch->label_text_actor);
+
+	/* Label background */
+	launch->label_bg_actor = clutter_rectangle_new_with_color(launch->bg_color);
+	clutter_actor_set_size(launch->label_bg_actor,
+		clutter_actor_get_width(launch->label_actor) * 1.5,
+		clutter_actor_get_height(launch->label_actor) * 1.5);
+	clutter_container_add_actor(CLUTTER_CONTAINER(launch->label_actor), launch->label_bg_actor);
+	clutter_actor_lower(launch->label_bg_actor, launch->label_text_actor);
+
+	/* Put Text at center */
+	clutter_actor_set_position(launch->label_text_actor,
+		(clutter_actor_get_width(launch->label_bg_actor) - clutter_actor_get_width(launch->label_text_actor)) * 0.5,
+		(clutter_actor_get_height(launch->label_bg_actor) - clutter_actor_get_height(launch->label_text_actor)) * 0.5);
 
 	/* Set icon behavior */
 	clutter_actor_set_reactive(launch->icon_actor, TRUE);
@@ -165,7 +187,7 @@ launch_resize(JshWidget *widget)
 		/* Label position */
 		clutter_actor_set_position(launch->label_actor,
 			clutter_actor_get_width(launch->icon_actor) * 0.5,
-			-clutter_actor_get_height(launch->icon_actor) * 0.4);
+			-clutter_actor_get_height(launch->icon_actor) * 0.5);
 	} else {
 		clutter_actor_set_request_mode(launch->container, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
 		clutter_actor_set_width(launch->container, clutter_actor_get_width(widget->container));
