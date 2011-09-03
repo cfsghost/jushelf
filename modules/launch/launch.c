@@ -24,8 +24,9 @@ launch_press_cb(Launch *launch)
 static gboolean
 launch_release_cb(Launch *launch)
 {
-	g_print("Execute \"%s\"\n", launch->exec);
-	g_spawn_command_line_async(launch->exec, NULL);
+	if (launch->exec)
+		g_spawn_command_line_async(launch->exec, NULL);
+
 	clutter_state_set_state(launch->state, "release");
 	return TRUE;
 }
