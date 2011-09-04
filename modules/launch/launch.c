@@ -119,7 +119,7 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 		launch->text_color = clutter_color_new(0xff, 0xff, 0xff, 0xff);
 	}
 
-	launch->bg_color = clutter_color_new(0x44, 0x44, 0x44, 0xff);
+	launch->bg_color = clutter_color_new(0x33, 0x33, 0x33, 0xff);
 
 	widget->priv = (gpointer)launch;
 
