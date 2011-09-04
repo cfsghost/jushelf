@@ -75,17 +75,17 @@ jsh_shelf_init(JshShelf *shelf)
 
 	/* State of shelf */
 	shelf->state = clutter_state_new();
-	clutter_state_set_duration(shelf->state, NULL, NULL, 360);
+	clutter_state_set_duration(shelf->state, NULL, NULL, 720);
 	if (shelf->orientation == JSH_ORIENTATION_HORIZONTAL) {
 		/* Top */
 		if (shelf->place >= JSH_PLACE_TOP && shelf->place <= JSH_PLACE_TOP_RIGHT) {
 			clutter_state_set(shelf->state, NULL, "active",
-				shelf->container, "y", CLUTTER_EASE_OUT_CUBIC, 0.0,
-				shelf->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
+				shelf->container, "y", CLUTTER_EASE_OUT_QUINT, 0.0,
+				shelf->container, "opacity", CLUTTER_EASE_OUT_QUINT, 0xff,
 				NULL);
 			clutter_state_set(shelf->state, NULL, "deactivate",
-				shelf->container, "y", CLUTTER_EASE_OUT_CUBIC, (gdouble)-shelf->size,
-				shelf->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0x00,
+				shelf->container, "y", CLUTTER_EASE_OUT_QUINT, (gdouble)-shelf->size,
+				shelf->container, "opacity", CLUTTER_EASE_OUT_QUINT, 0x00,
 				NULL);
 		}
 	}
@@ -137,10 +137,13 @@ jsh_shelf_init(JshShelf *shelf)
 	jsh_shelf_window_init(shelf);
 
 	/* Place by default */
-	if (shelf->autohide)
+	clutter_state_set_state(shelf->state, "deactivate");
+	if (shelf->autohide) {
 		jsh_shelf_reset_place(shelf, 0);
-	else
+	} else {
 		jsh_shelf_reset_place(shelf, shelf->size * 1.5);
+		clutter_state_set_state(shelf->state, "deactivate");
+	}
 }
 
 void
