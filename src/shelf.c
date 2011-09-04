@@ -23,7 +23,6 @@ jsh_shelf_event_handler(ClutterActor *actor, ClutterEvent *event, gpointer data)
 
 	} else if (event->type == CLUTTER_LEAVE) {
 		if (event->any.source == shelf->window && event->crossing.related == NULL) {
-			jsh_shelf_reset_place(shelf, 0);
 			clutter_state_set_state(shelf->state, "deactivate");
 
 			return TRUE;
@@ -31,6 +30,17 @@ jsh_shelf_event_handler(ClutterActor *actor, ClutterEvent *event, gpointer data)
 	}
 
 	return FALSE;
+}
+
+static void
+jsh_shelf_state_completed(ClutterState *state, gpointer data)
+{
+	JshShelf *shelf = (JshShelf *)data;
+
+	if (g_str_equal(clutter_state_get_state(shelf->state), "deactivate")) {
+		/* Hide window after effect */
+		jsh_shelf_reset_place(shelf, 0);
+	}
 }
 
 JshShelf *
@@ -84,9 +94,10 @@ jsh_shelf_init(JshShelf *shelf)
 				shelf->container, "opacity", CLUTTER_EASE_OUT_QUINT, 0xff,
 				NULL);
 			clutter_state_set(shelf->state, NULL, "deactivate",
-				shelf->container, "y", CLUTTER_EASE_OUT_QUINT, (gdouble)-shelf->size,
-				shelf->container, "opacity", CLUTTER_EASE_OUT_QUINT, 0x00,
+				shelf->container, "y", CLUTTER_EASE_OUT_QUAD, (gdouble)-shelf->size,
+				shelf->container, "opacity", CLUTTER_EASE_OUT_QUAD, 0x00,
 				NULL);
+			clutter_state_set_duration(shelf->state, "active", "deactivate", 180);
 
 		/* Bottom */
 		} else if (shelf->place >= JSH_PLACE_BOTTOM && shelf->place <= JSH_PLACE_BOTTOM_RIGHT) {
@@ -95,11 +106,13 @@ jsh_shelf_init(JshShelf *shelf)
 				shelf->container, "opacity", CLUTTER_EASE_OUT_QUINT, 0xff,
 				NULL);
 			clutter_state_set(shelf->state, NULL, "deactivate",
-				shelf->container, "y", CLUTTER_EASE_OUT_QUINT, (gdouble)shelf->size,
-				shelf->container, "opacity", CLUTTER_EASE_OUT_QUINT, 0x00,
+				shelf->container, "y", CLUTTER_EASE_OUT_QUAD, (gdouble)shelf->size,
+				shelf->container, "opacity", CLUTTER_EASE_OUT_QUAD, 0x00,
 				NULL);
+			clutter_state_set_duration(shelf->state, "active", "deactivate", 180);
 		}
 	}
+	g_signal_connect(shelf->state, "completed", G_CALLBACK(jsh_shelf_state_completed), shelf);
 
 	/* shelf size */
 	clutter_actor_set_size(shelf->window, shelf->size * 2, shelf->size * 2);
