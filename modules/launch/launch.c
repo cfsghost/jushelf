@@ -139,11 +139,11 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->label_actor);
 
 	/* Label text */
-	launch->label_text_actor = clutter_text_new_full("Sans 12px", launch->name, launch->text_color);
+	launch->label_text_actor = clutter_text_new_full("Sans 14px", launch->name, launch->text_color);
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->label_actor), launch->label_text_actor);
 
 	/* Label background */
-	launch->label_bg_actor = launch_round_rectangle_new((gint)(clutter_actor_get_width(launch->label_actor) * 1.5), (gint)(clutter_actor_get_height(launch->label_actor) * 1.5), launch->bg_color);
+	launch->label_bg_actor = launch_round_rectangle_new((gint)(clutter_actor_get_width(launch->label_actor) + 20), (gint)(clutter_actor_get_height(launch->label_actor) + 8), launch->bg_color);
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->label_actor), launch->label_bg_actor);
 	clutter_actor_lower(launch->label_bg_actor, launch->label_text_actor);
 
