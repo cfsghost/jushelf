@@ -13,7 +13,7 @@ typedef struct {
 	ClutterActor *label_bg_actor;
 	ClutterColor *bg_color;
 	ClutterColor *text_color;
-	ClutterState *state;
+	ClutterState *icon_state;
 	ClutterState *label_state;
 	gchar *icon;
 	gchar *name;
@@ -25,7 +25,7 @@ launch_press_cb(JshWidget *widget)
 {
 	Launch *launch = (Launch *)widget->priv;
 
-	clutter_state_set_state(launch->state, "icon-press");
+	clutter_state_set_state(launch->icon_state, "press");
 	return TRUE;
 }
 
@@ -37,7 +37,7 @@ launch_release_cb(JshWidget *widget)
 	if (launch->exec)
 		g_spawn_command_line_async(launch->exec, NULL);
 
-	clutter_state_set_state(launch->state, "icon-release");
+	clutter_state_set_state(launch->icon_state, "release");
 	return TRUE;
 }
 
@@ -46,7 +46,7 @@ launch_leave_cb(JshWidget *widget)
 {
 	Launch *launch = (Launch *)widget->priv;
 
-	clutter_state_set_state(launch->state, "icon-normal");
+	clutter_state_set_state(launch->icon_state, "normal");
 	clutter_state_set_state(launch->label_state, "deactivate");
 	return TRUE;
 }
@@ -59,7 +59,7 @@ launch_enter_cb(JshWidget *widget)
 	/* Raise top */
 	clutter_actor_raise_top(widget->container);
 
-	clutter_state_set_state(launch->state, "icon-active");
+	clutter_state_set_state(launch->icon_state, "active");
 	clutter_state_set_state(launch->label_state, "active");
 		
 	return TRUE;
@@ -70,7 +70,7 @@ launch_round_rectangle_new(gint width, gint height, ClutterColor *color)
 {
 	ClutterActor *actor;
 	cairo_t *cr;
-	gdouble radius = 10.0;
+	gdouble radius = 8.0;
 	gdouble degrees = G_PI / 180.0;
 
 	/* Initializing a new actor to use Cairo */
@@ -90,7 +90,7 @@ launch_round_rectangle_new(gint width, gint height, ClutterColor *color)
 	cairo_arc(cr, radius, radius, radius, 180 * degrees, 270 * degrees);
 	cairo_close_path(cr);
 
-	cairo_set_source_rgb(cr, color->red / 255, color->green / 255, color->blue / 255);
+	cairo_set_source_rgb(cr, (gdouble)color->red / 255, (gdouble)color->green / 255, (gdouble)color->blue / 255);
 	cairo_fill(cr);
 
 	cairo_destroy(cr);
@@ -126,6 +126,7 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 	/* Initializing object */
 	launch->container = clutter_group_new();
 	launch->icon_actor = clutter_texture_new_from_file(launch->icon, NULL);
+	clutter_actor_set_reactive(launch->icon_actor, TRUE);
 	clutter_texture_set_keep_aspect_ratio(CLUTTER_TEXTURE(launch->icon_actor), TRUE);
 	clutter_texture_set_filter_quality(CLUTTER_TEXTURE(launch->icon_actor), CLUTTER_TEXTURE_QUALITY_HIGH);
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->icon_actor);
@@ -138,20 +139,13 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->label_actor);
 
 	/* Label text */
-	launch->label_text_actor = clutter_text_new_full("Sans 12pt", launch->name, launch->text_color);
+	launch->label_text_actor = clutter_text_new_full("Sans 12px", launch->name, launch->text_color);
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->label_actor), launch->label_text_actor);
 
 	/* Label background */
 	launch->label_bg_actor = launch_round_rectangle_new((gint)(clutter_actor_get_width(launch->label_actor) * 1.5), (gint)(clutter_actor_get_height(launch->label_actor) * 1.5), launch->bg_color);
-/*
-	launch->label_bg_actor = clutter_rectangle_new_with_color(launch->bg_color);
-	clutter_actor_set_size(launch->label_bg_actor,
-		clutter_actor_get_width(launch->label_actor) * 1.5,
-		clutter_actor_get_height(launch->label_actor) * 1.5);
-*/
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->label_actor), launch->label_bg_actor);
 	clutter_actor_lower(launch->label_bg_actor, launch->label_text_actor);
-//	g_signal_connect(launch->label_bg_actor, "paint", G_CALLBACK(launch_label_background_paint_cb), NULL);
 
 	/* Put Text at center */
 	clutter_actor_set_position(launch->label_text_actor,
@@ -159,31 +153,29 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 		(clutter_actor_get_height(launch->label_bg_actor) - clutter_actor_get_height(launch->label_text_actor)) * 0.5);
 
 	/* Set icon behavior */
-	clutter_actor_set_reactive(launch->icon_actor, TRUE);
-
-	launch->state = clutter_state_new();
+	launch->icon_state = clutter_state_new();
+	clutter_state_set_duration(launch->icon_state, NULL, NULL, 360);
 	g_object_set(G_OBJECT(launch->icon_actor),
 		"scale-gravity", CLUTTER_GRAVITY_CENTER,
 		"rotation-center-z-gravity", CLUTTER_GRAVITY_CENTER,
 		NULL);
-	clutter_state_set(launch->state, NULL, "icon-active",
+	clutter_state_set(launch->icon_state, NULL, "active",
 		launch->icon_actor, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.5,
 		launch->icon_actor, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.5,
 		launch->icon_actor, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, 12.0,
 		NULL);
-	clutter_state_set(launch->state, NULL, "icon-normal",
+	clutter_state_set(launch->icon_state, NULL, "normal",
 		launch->icon_actor, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
 		launch->icon_actor, "scale-x", CLUTTER_EASE_OUT_CUBIC, 1.0,
 		launch->icon_actor, "scale-y", CLUTTER_EASE_OUT_CUBIC, 1.0,
 		launch->icon_actor, "rotation-angle-z", CLUTTER_EASE_OUT_CUBIC, .0,
 		NULL);
-	clutter_state_set(launch->state, NULL, "icon-press",
+	clutter_state_set(launch->icon_state, NULL, "press",
 		launch->icon_actor, "opacity", CLUTTER_EASE_OUT_CUBIC, 0x88,
 		NULL);
-	clutter_state_set(launch->state, NULL, "icon-release",
+	clutter_state_set(launch->icon_state, NULL, "release",
 		launch->icon_actor, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
 		NULL);
-	clutter_state_set_duration(launch->state, NULL, NULL, 360);
 
 	/* Set label behavior */
 	launch->label_state = clutter_state_new();
@@ -204,8 +196,6 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 		G_CALLBACK(launch_enter_cb), widget);
 	g_signal_connect_swapped(launch->icon_actor, "leave-event",
 		G_CALLBACK(launch_leave_cb), widget);
-
-	g_print("Constructor\n");
 }
 
 static void
@@ -220,17 +210,17 @@ launch_resize(JshWidget *widget)
 		clutter_actor_set_height(launch->container, clutter_actor_get_height(widget->container));
 		clutter_actor_set_request_mode(launch->icon_actor, CLUTTER_REQUEST_WIDTH_FOR_HEIGHT);
 		clutter_actor_set_height(launch->icon_actor, clutter_actor_get_height(widget->container));
-
-		/* Label position */
-		clutter_actor_set_position(launch->label_actor,
-			clutter_actor_get_width(launch->icon_actor) * 0.5,
-			-clutter_actor_get_height(launch->icon_actor) * 0.5);
 	} else {
 		clutter_actor_set_request_mode(launch->container, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
 		clutter_actor_set_width(launch->container, clutter_actor_get_width(widget->container));
 		clutter_actor_set_request_mode(launch->icon_actor, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
 		clutter_actor_set_width(launch->icon_actor, clutter_actor_get_width(widget->container));
 	}
+
+	/* Label position */
+	clutter_actor_set_position(launch->label_actor,
+		clutter_actor_get_width(launch->icon_actor) * 0.5,
+		-clutter_actor_get_height(launch->icon_actor) * 0.5);
 
 	clutter_actor_get_size(launch->icon_actor, &widget->width, &widget->height);
 }
