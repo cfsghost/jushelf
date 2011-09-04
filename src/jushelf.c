@@ -185,7 +185,6 @@ main(int argc, char *argv[])
 	clutter_x11_set_use_argb_visual(TRUE);
 
 	clutter_init(&argc, &argv);
-	clutter_set_font_flags(CLUTTER_FONT_HINTING);
 
 	/* Initializing Application */
 	DEBUG("Initializing JuShelf\n");

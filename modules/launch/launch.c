@@ -139,7 +139,7 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->container), launch->label_actor);
 
 	/* Label text */
-	launch->label_text_actor = clutter_text_new_full("Sans 14px", launch->name, launch->text_color);
+	launch->label_text_actor = clutter_text_new_full("Sans bold 9", launch->name, launch->text_color);
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->label_actor), launch->label_text_actor);
 
 	/* Label background */
