@@ -17,12 +17,14 @@ jsh_shelf_event_handler(ClutterActor *actor, ClutterEvent *event, gpointer data)
 	if (event->type == CLUTTER_ENTER) {
 		if (event->any.source == shelf->window) {
 			jsh_shelf_reset_place(shelf, shelf->size * 1.5);
+			clutter_state_set_state(shelf->state, "active");
 			return TRUE;
 		}
 
 	} else if (event->type == CLUTTER_LEAVE) {
 		if (event->any.source == shelf->window && event->crossing.related == NULL) {
-				jsh_shelf_reset_place(shelf, 0);
+			jsh_shelf_reset_place(shelf, 0);
+			clutter_state_set_state(shelf->state, "deactivate");
 
 			return TRUE;
 		}
@@ -69,6 +71,23 @@ jsh_shelf_init(JshShelf *shelf)
 		DEBUG("Enable Autohide\n");
 		g_signal_connect(shelf->window, "captured-event",
 			G_CALLBACK(jsh_shelf_event_handler), shelf);
+	}
+
+	/* State of shelf */
+	shelf->state = clutter_state_new();
+	clutter_state_set_duration(shelf->state, NULL, NULL, 360);
+	if (shelf->orientation == JSH_ORIENTATION_HORIZONTAL) {
+		/* Top */
+		if (shelf->place >= JSH_PLACE_TOP && shelf->place <= JSH_PLACE_TOP_RIGHT) {
+			clutter_state_set(shelf->state, NULL, "active",
+				shelf->container, "y", CLUTTER_EASE_OUT_CUBIC, 0.0,
+				shelf->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0xff,
+				NULL);
+			clutter_state_set(shelf->state, NULL, "deactivate",
+				shelf->container, "y", CLUTTER_EASE_OUT_CUBIC, (gdouble)-shelf->size,
+				shelf->container, "opacity", CLUTTER_EASE_OUT_CUBIC, 0x00,
+				NULL);
+		}
 	}
 
 	/* shelf size */

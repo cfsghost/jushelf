@@ -41,6 +41,7 @@ typedef struct {
 	JuShelf *parent;
 	ClutterActor *window;
 	ClutterActor *container;
+	ClutterState *state;
 
 	/* Properties */
 	gchar *name;
