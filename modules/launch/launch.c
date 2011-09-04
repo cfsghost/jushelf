@@ -210,17 +210,28 @@ launch_resize(JshWidget *widget)
 		clutter_actor_set_height(launch->container, clutter_actor_get_height(widget->container));
 		clutter_actor_set_request_mode(launch->icon_actor, CLUTTER_REQUEST_WIDTH_FOR_HEIGHT);
 		clutter_actor_set_height(launch->icon_actor, clutter_actor_get_height(widget->container));
+
+		/* Top */
+		if (widget->place >= JSH_PLACE_TOP && widget->place <= JSH_PLACE_TOP_RIGHT) {
+			/* Label position */
+			clutter_actor_set_position(launch->label_actor,
+				clutter_actor_get_width(launch->icon_actor) * 0.5,
+				clutter_actor_get_height(launch->icon_actor) * 1.5);
+
+		/* Bottom */
+		} else if (widget->place >= JSH_PLACE_BOTTOM && widget->place <= JSH_PLACE_BOTTOM_RIGHT) {
+			/* Label position */
+			clutter_actor_set_position(launch->label_actor,
+				clutter_actor_get_width(launch->icon_actor) * 0.5,
+				-clutter_actor_get_height(launch->icon_actor) * 0.5);
+		}
+
 	} else {
 		clutter_actor_set_request_mode(launch->container, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
 		clutter_actor_set_width(launch->container, clutter_actor_get_width(widget->container));
 		clutter_actor_set_request_mode(launch->icon_actor, CLUTTER_REQUEST_HEIGHT_FOR_WIDTH);
 		clutter_actor_set_width(launch->icon_actor, clutter_actor_get_width(widget->container));
 	}
-
-	/* Label position */
-	clutter_actor_set_position(launch->label_actor,
-		clutter_actor_get_width(launch->icon_actor) * 0.5,
-		-clutter_actor_get_height(launch->icon_actor) * 0.5);
 
 	clutter_actor_get_size(launch->icon_actor, &widget->width, &widget->height);
 }

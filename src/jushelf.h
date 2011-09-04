@@ -22,19 +22,6 @@ typedef enum {
 	JSH_WINDOW_TYPE_DIALOG
 } JshWindowType;
 
-typedef enum {
-	JSH_PLACE_TOP,
-	JSH_PLACE_TOP_LEFT,
-	JSH_PLACE_TOP_RIGHT,
-
-	JSH_PLACE_BOTTOM,
-	JSH_PLACE_BOTTOM_LEFT,
-	JSH_PLACE_BOTTOM_RIGHT,
-
-	JSH_PLACE_LEFT,
-	JSH_PLACE_RIGHT
-} JshPlace;
-
 typedef struct _JuShelf JuShelf;
 
 typedef struct {

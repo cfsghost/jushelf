@@ -55,6 +55,7 @@ jsh_build_shelf(JuShelf *jushelf, JshConf *conf, JsonNode *node, const gchar *sh
 		
 		/* create widgets */
 		widget = jsh_widget_new(jushelf, module_name);
+		widget->place = shelf->place;
 		widget->orientation = shelf->orientation;
 		g_ptr_array_add(shelf->widgets, widget);
 
