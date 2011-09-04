@@ -16,7 +16,7 @@ jsh_shelf_event_handler(ClutterActor *actor, ClutterEvent *event, gpointer data)
 
 	if (event->type == CLUTTER_ENTER) {
 		if (event->any.source == shelf->window) {
-			jsh_shelf_reset_place(shelf, shelf->size * 1.5);
+			jsh_shelf_reset_place(shelf, shelf->size * 1.8);
 			clutter_state_set_state(shelf->state, "active");
 			return TRUE;
 		}
@@ -80,7 +80,7 @@ jsh_shelf_init(JshShelf *shelf)
 		/* Top */
 		if (shelf->place >= JSH_PLACE_TOP && shelf->place <= JSH_PLACE_TOP_RIGHT) {
 			clutter_state_set(shelf->state, NULL, "active",
-				shelf->container, "y", CLUTTER_EASE_OUT_QUINT, shelf->size * 0.7,
+				shelf->container, "y", CLUTTER_EASE_OUT_QUINT, shelf->size * 0.5,
 				shelf->container, "opacity", CLUTTER_EASE_OUT_QUINT, 0xff,
 				NULL);
 			clutter_state_set(shelf->state, NULL, "deactivate",
@@ -91,7 +91,7 @@ jsh_shelf_init(JshShelf *shelf)
 		/* Bottom */
 		} else if (shelf->place >= JSH_PLACE_BOTTOM && shelf->place <= JSH_PLACE_BOTTOM_RIGHT) {
 			clutter_state_set(shelf->state, NULL, "active",
-				shelf->container, "y", CLUTTER_EASE_OUT_QUINT, (gdouble)shelf->size * 0.55,
+				shelf->container, "y", CLUTTER_EASE_OUT_QUINT, (gdouble)shelf->size * 0.7,
 				shelf->container, "opacity", CLUTTER_EASE_OUT_QUINT, 0xff,
 				NULL);
 			clutter_state_set(shelf->state, NULL, "deactivate",
@@ -152,7 +152,7 @@ jsh_shelf_init(JshShelf *shelf)
 	if (shelf->autohide) {
 		jsh_shelf_reset_place(shelf, 0);
 	} else {
-		jsh_shelf_reset_place(shelf, shelf->size * 1.5);
+		jsh_shelf_reset_place(shelf, shelf->size * 1.8);
 		clutter_state_set_state(shelf->state, "active");
 	}
 }
