@@ -65,6 +65,39 @@ launch_enter_cb(JshWidget *widget)
 	return TRUE;
 }
 
+static ClutterActor *
+launch_round_rectangle_new(gint width, gint height, ClutterColor *color)
+{
+	ClutterActor *actor;
+	cairo_t *cr;
+	gdouble radius = 10.0;
+	gdouble degrees = G_PI / 180.0;
+
+	/* Initializing a new actor to use Cairo */
+	actor = clutter_cairo_texture_new(width, height);
+	cr = clutter_cairo_texture_create(CLUTTER_CAIRO_TEXTURE(actor));
+
+	/* Clear */
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+
+	/* path for rounded rectangle */
+	cairo_new_sub_path(cr);
+	cairo_arc(cr, width - radius, radius, radius, -90 * degrees, 0);
+	cairo_arc(cr, width - radius, height - radius, radius, 0, 90 * degrees);
+	cairo_arc(cr, radius, height - radius, radius, 90 * degrees, 180 * degrees);
+	cairo_arc(cr, radius, radius, radius, 180 * degrees, 270 * degrees);
+	cairo_close_path(cr);
+
+	cairo_set_source_rgb(cr, color->red / 255, color->green / 255, color->blue / 255);
+	cairo_fill(cr);
+
+	cairo_destroy(cr);
+
+	return actor;
+}
+
 static void
 launch_constructor(JshWidget *widget, JsonNode *node)
 {
@@ -109,12 +142,16 @@ launch_constructor(JshWidget *widget, JsonNode *node)
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->label_actor), launch->label_text_actor);
 
 	/* Label background */
+	launch->label_bg_actor = launch_round_rectangle_new((gint)(clutter_actor_get_width(launch->label_actor) * 1.5), (gint)(clutter_actor_get_height(launch->label_actor) * 1.5), launch->bg_color);
+/*
 	launch->label_bg_actor = clutter_rectangle_new_with_color(launch->bg_color);
 	clutter_actor_set_size(launch->label_bg_actor,
 		clutter_actor_get_width(launch->label_actor) * 1.5,
 		clutter_actor_get_height(launch->label_actor) * 1.5);
+*/
 	clutter_container_add_actor(CLUTTER_CONTAINER(launch->label_actor), launch->label_bg_actor);
 	clutter_actor_lower(launch->label_bg_actor, launch->label_text_actor);
+//	g_signal_connect(launch->label_bg_actor, "paint", G_CALLBACK(launch_label_background_paint_cb), NULL);
 
 	/* Put Text at center */
 	clutter_actor_set_position(launch->label_text_actor,
