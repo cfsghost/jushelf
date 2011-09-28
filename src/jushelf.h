@@ -41,6 +41,9 @@ typedef struct {
 } JshShelf;
 
 struct _JuShelf {
+	gint screen_width;
+	gint screen_height;
+
 	GPtrArray *modules;
 	GPtrArray *shelves;
 };

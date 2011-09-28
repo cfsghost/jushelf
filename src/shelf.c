@@ -162,6 +162,12 @@ jsh_shelf_init(JshShelf *shelf)
 
 	/* Place by default */
 	clutter_state_set_state(shelf->state, "deactivate");
+	jsh_shelf_update_place(shelf);
+}
+
+void
+jsh_shelf_update_place(JshShelf *shelf)
+{
 	if (shelf->autohide) {
 		jsh_shelf_reset_place(shelf, 0);
 	} else {
@@ -185,13 +191,13 @@ jsh_shelf_reset_place(JshShelf *shelf, gfloat offset)
 	switch(shelf->place) {
 	case JSH_PLACE_TOP:
 		XMoveWindow(disp, w,
-			((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
+			((gfloat)shelf->parent->screen_width - clutter_actor_get_width(shelf->window)) * 0.5,
 			- clutter_actor_get_height(shelf->window) + 2 + offset);
 		break;
 	case JSH_PLACE_BOTTOM:
 		XMoveWindow(disp, w,
-			((gfloat)DisplayWidth(disp, screen) - clutter_actor_get_width(shelf->window)) * 0.5,
-			(gfloat)DisplayHeight(disp, screen) - 2 - offset);
+			((gfloat)shelf->parent->screen_width - clutter_actor_get_width(shelf->window)) * 0.5,
+			(gfloat)shelf->parent->screen_height - 2 - offset);
 		break;
 	}
 }

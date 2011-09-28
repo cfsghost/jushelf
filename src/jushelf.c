@@ -29,7 +29,7 @@ jsh_build_shelf(JuShelf *jushelf, JshConf *conf, JsonNode *node, const gchar *sh
 	object = json_node_get_object(node);
 
 	/* Initializing shelf */
-	shelf = jsh_shelf_new();	
+	shelf = jsh_shelf_new(jushelf);	
 	shelf->name = g_strdup(shelf_name);
 	shelf->size = json_object_get_int_member(object, "size");
 	shelf->opacity = json_object_get_int_member(object, "opacity");
@@ -72,7 +72,7 @@ jsh_build_default_shelf(JuShelf *jushelf)
 	JshShelf *shelf;
 
 	DEBUG("Create a default shelf\n");
-	shelf = jsh_shelf_new();	
+	shelf = jsh_shelf_new(jushelf);	
 	shelf->name = g_strdup("default");
 	shelf->place = JSH_PLACE_BOTTOM;
 
@@ -170,10 +170,40 @@ jsh_config_file_init(JuShelf *jushelf)
 	jsh_load_main_config(jushelf, confpath);
 }
 
+static gboolean
+jsh_event_poll(JuShelf *jushelf)
+{
+	Display *disp;
+	int screen;
+	XWindowAttributes windowattr;
+	gint i;
+
+	/* Get current display and screen */
+	disp = clutter_x11_get_default_display();
+	screen = clutter_x11_get_default_screen();
+	XGetWindowAttributes(disp, RootWindow(disp, screen), &windowattr);
+
+	if (jushelf->screen_width != windowattr.width ||
+		jushelf->screen_height != windowattr.height) {
+		DEBUG("Resolution has been changed, update shelf position right now!\n");
+		jushelf->screen_width = windowattr.width;
+		jushelf->screen_height = windowattr.height;
+
+		/* Update all shelf position */
+		for (i = 0; i < jushelf->shelves->len; ++i) {
+			jsh_shelf_update_place(g_ptr_array_index(jushelf->shelves, i));
+		}
+	}
+
+	return TRUE;
+}
+
 int
 main(int argc, char *argv[])
 {
 	JuShelf *jushelf;
+	Display *disp;
+	int screen;
 	gint i;
 	
 	if (!g_module_supported()) {
@@ -181,14 +211,19 @@ main(int argc, char *argv[])
 	}
 
 	DEBUG("Starting JuShelf\n");
-
 	clutter_x11_set_use_argb_visual(TRUE);
 
 	clutter_init(&argc, &argv);
 
+	/* Get current display and screen */
+	disp = clutter_x11_get_default_display();
+	screen = clutter_x11_get_default_screen();
+
 	/* Initializing Application */
 	DEBUG("Initializing JuShelf\n");
 	jushelf = (JuShelf *)g_slice_new(JuShelf);
+	jushelf->screen_width = DisplayWidth(disp, screen);
+	jushelf->screen_height = DisplayHeight(disp, screen);
 	jushelf->modules = g_ptr_array_new();
 	jushelf->shelves = g_ptr_array_new();
 	jsh_config_file_init(jushelf);
@@ -198,6 +233,9 @@ main(int argc, char *argv[])
 	for (i = 0; i < jushelf->shelves->len; ++i) {
 		jsh_shelf_init(g_ptr_array_index(jushelf->shelves, i));
 	}
+
+	g_idle_add_full(G_PRIORITY_LOW, (GSourceFunc)jsh_event_poll, jushelf, NULL);
+//	g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, jsh_event_poll, jushelf, NULL);
 
 #if 0
 	/* Create a new stage */
