@@ -3,6 +3,7 @@
 #include <gmodule.h>
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <X11/extensions/Xrandr.h>
 #include <sys/stat.h>
 #include <clutter/clutter.h>
 #include <clutter/x11/clutter-x11.h>
@@ -170,8 +171,8 @@ jsh_config_file_init(JuShelf *jushelf)
 	jsh_load_main_config(jushelf, confpath);
 }
 
-static gboolean
-jsh_event_poll(JuShelf *jushelf)
+static
+check_resolution(JuShelf *jushelf)
 {
 	Display *disp;
 	int screen;
@@ -194,8 +195,20 @@ jsh_event_poll(JuShelf *jushelf)
 			jsh_shelf_update_place(g_ptr_array_index(jushelf->shelves, i));
 		}
 	}
+}
 
-	return TRUE;
+gboolean
+jsh_xevent_filter(XEvent *ev, ClutterEvent *cev, JuShelf *jushelf)
+{
+	/* XRandr Extension Event */
+	switch(ev->type - jushelf->xrandr_event_base) {
+	case RRScreenChangeNotify:
+		DEBUG("Got RRScreenChangeNotify\n");
+		check_resolution(jushelf);
+		break;
+	}
+
+	return CLUTTER_X11_FILTER_CONTINUE;
 }
 
 int
@@ -228,13 +241,26 @@ main(int argc, char *argv[])
 	jushelf->shelves = g_ptr_array_new();
 	jsh_config_file_init(jushelf);
 
+	/* XRandr extension */
+	XRRQueryVersion(disp, &jushelf->rr_major_version, &jushelf->rr_minor_version);
+	if (jushelf->rr_major_version < 1 || (jushelf->rr_major_version == 1 && jushelf->rr_minor_version < 2)) {
+		g_print("RANDR extension is too old (must be at least 1.2)\n");
+		return EXIT_FAILURE;
+	}
+
+	XRRSelectInput(disp, DefaultRootWindow(disp), RRScreenChangeNotifyMask);
+	XRRQueryExtension(disp, &jushelf->xrandr_event_base, &jushelf->xrandr_error_base);
+
 	/* Initializing shelf */
 	DEBUG("Initializing Shelves\n");
 	for (i = 0; i < jushelf->shelves->len; ++i) {
 		jsh_shelf_init(g_ptr_array_index(jushelf->shelves, i));
 	}
 
-	g_idle_add_full(G_PRIORITY_LOW, (GSourceFunc)jsh_event_poll, jushelf, NULL);
+	/* X Events */
+	clutter_x11_add_filter(jsh_xevent_filter, jushelf);
+
+//	g_idle_add_full(G_PRIORITY_LOW, (GSourceFunc)jsh_event_poll, jushelf, NULL);
 //	g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, jsh_event_poll, jushelf, NULL);
 
 #if 0

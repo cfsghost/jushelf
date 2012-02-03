@@ -44,6 +44,12 @@ struct _JuShelf {
 	gint screen_width;
 	gint screen_height;
 
+	/* XRandr Extension */
+	gint rr_major_version;
+	gint rr_minor_version;
+	gint xrandr_event_base;
+	gint xrandr_error_base;
+
 	GPtrArray *modules;
 	GPtrArray *shelves;
 };

@@ -14,6 +14,7 @@ AC_PROG_LIBTOOL
 AC_HEADER_STDC
 # Checks for libraries.
 pkg_modules="clutter-1.0 \
+             xrandr \
              json-glib-1.0"
 
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
