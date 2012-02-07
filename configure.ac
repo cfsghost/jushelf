@@ -2,7 +2,7 @@ AC_PREREQ(2.57)
 AC_INIT(jushelf, 0.1)
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE
-AC_PROG_INTLTOOL
+#AC_PROG_INTLTOOL
 AM_MAINTAINER_MODE
 
 AC_ISC_POSIX
@@ -35,6 +35,7 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package.])
 
 ALL_LINGUAS=""
+AC_SUBST(ALL_LINGUAS)
 AM_GLIB_GNU_GETTEXT
 
 AC_OUTPUT([
@@ -44,6 +45,5 @@ AC_OUTPUT([
   src/Makefile
   modules/Makefile
   modules/launch/Makefile
-  po/Makefile.in
   data/Makefile
 ])
